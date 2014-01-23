@@ -35,8 +35,9 @@ class Microsoft extends AbstractService
     const SCOPE_WORK_PROFILE = 'wl.work_profile';
     const SCOPE_APPLICATIONS = 'wl.applications';
     const SCOPE_APPLICATIONS_CREATE = 'wl.applications_create';
+    const SCOPE_IMAP = 'wl.imap';
 
-    public function __construct(
+  public function __construct(
         CredentialsInterface $credentials,
         ClientInterface $httpClient,
         TokenStorageInterface $storage,

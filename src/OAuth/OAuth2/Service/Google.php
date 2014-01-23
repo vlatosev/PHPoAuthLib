@@ -26,6 +26,7 @@ class Google extends AbstractService
     const SCOPE_GOOGLEDRIVE = 'https://www.googleapis.com/auth/drive';
     const SCOPE_GOOGLEDRIVE_FILES = 'https://www.googleapis.com/auth/drive.file';
     const SCOPE_GMAIL = 'https://mail.google.com/mail/feed/atom';
+    const SCOPE_MAIL  = 'https://mail.google.com/';
     const SCOPE_GPLUS_ME = 'https://www.googleapis.com/auth/plus.me';
     const SCOPE_GPLUS_LOGIN = 'https://www.googleapis.com/auth/plus.login';
     const SCOPE_GROUPS_PROVISIONING = 'https://apps-apis.google.com/a/feeds/groups/';
