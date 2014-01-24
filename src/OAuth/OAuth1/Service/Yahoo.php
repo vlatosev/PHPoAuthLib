@@ -66,7 +66,8 @@ class Yahoo extends AbstractService
     $token->setAccessToken($data['oauth_token']);
     $token->setAccessTokenSecret($data['oauth_token_secret']);
     $token->setEndOfLife(time() + intval($data['oauth_expires_in']));
-    unset($data['oauth_token'], $data['oauth_token_secret']);
+    $token->setRefreshToken(isset($data['oauth_session_handle']) ? $data['oauth_session_handle'] : null);
+    unset($data['oauth_token'], $data['oauth_token_secret'], $data['oauth_session_handle']);
     $token->setExtraParams($data);
     return $token;
   }
@@ -101,5 +102,17 @@ class Yahoo extends AbstractService
     }
 
     return $authorizationHeader;
+  }
+
+  public function refreshAccessToken(TokenInterface $token)
+  {
+    $refreshToken = $token->getRefreshToken();
+    $parameters = array('oauth_session_handle' => $token->getRefreshToken());
+    $responseBody = $this->request($this->getAccessTokenEndpoint(), 'POST', $parameters);
+    $token = $this->parseAccessTokenResponse($responseBody);
+    $this->storage->storeAccessToken($this->service(), $token);
+
+    return $token;
+
   }
 }
