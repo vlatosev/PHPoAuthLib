@@ -2,6 +2,7 @@
 
 namespace OAuth\OAuth1\Service;
 
+use OAuth\Common\Http\Exception\TokenResponseException;
 use OAuth\Common\Http\Uri\Uri;
 use OAuth\Common\Http\Uri\UriInterface;
 use OAuth\Common\Token\TokenInterface;
@@ -68,6 +69,7 @@ class Yahoo extends AbstractService
     $token->setEndOfLife(time() + intval($data['oauth_expires_in']));
     $token->setRefreshToken(isset($data['oauth_session_handle']) ? $data['oauth_session_handle'] : null);
     unset($data['oauth_token'], $data['oauth_token_secret'], $data['oauth_session_handle']);
+    $data = isset($data['oauth_authorization_expires_in']) ? array_merge($data, array('refresh_end_of_life' => (time() + intval($data['oauth_authorization_expires_in'])))) : $data;
     $token->setExtraParams($data);
     return $token;
   }
@@ -106,6 +108,13 @@ class Yahoo extends AbstractService
 
   public function refreshAccessToken(TokenInterface $token)
   {
+    $data = $token->getExtraParams();
+    $endlife = isset($data['refresh_end_of_life']) ? $data['refresh_end_of_life'] : time() + 3600;
+    if($endlife < time())
+    {
+      $this->storage->clearToken($this->service());
+      throw new TokenResponseException("Refresh token expired");
+    }
     $refreshToken = $token->getRefreshToken();
     $parameters = array('oauth_session_handle' => $token->getRefreshToken());
     $responseBody = $this->request($this->getAccessTokenEndpoint(), 'POST', $parameters);
