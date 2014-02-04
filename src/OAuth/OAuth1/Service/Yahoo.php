@@ -11,6 +11,16 @@ use OAuth\OAuth1\Token\StdOAuth1Token;
 
 class Yahoo extends AbstractService
 {
+  const YAHOO_MAIL_SOAP_WSDL = 'http://mail.yahooapis.com/ws/mail/v1.1/wsdl';
+
+  /**
+   * @return Uri
+   */
+  public function getMailAPIEndpoint()
+  {
+    return new Uri('http://mail.yahooapis.com/ws/mail/v1.1/soap');
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -123,5 +133,38 @@ class Yahoo extends AbstractService
 
     return $token;
 
+  }
+
+  public function getSoapClient(\OAuth\OAuth1\Token\TokenInterface $token, $yahoo_service)
+  {
+    switch($yahoo_service)
+    {
+      case 'mail':
+        $wsdl     = self::YAHOO_MAIL_SOAP_WSDL;
+        $endPoint = $this->getMailAPIEndpoint();
+        break;
+      default:
+        $wsdl = '';
+        $endPoint = '';
+        break;
+    }
+
+    $oauthHeaderForSoap  = $this->buildAuthorizationHeaderForAPIRequest('POST', $endPoint, $token);
+    $oauthHeaderForSoap = "Authorization: $oauthHeaderForSoap";
+    //$oauthHeaderForSoap = $this->soapHeader;
+    try{
+
+      $soapClient = new \SoapClient($wsdl, array(
+        'stream_context' => stream_context_create(array('http' => array( 'header' => "$oauthHeaderForSoap\n"))),
+        'trace'          => 1,
+//        'exceptions'     => true,
+        'location'       => $endPoint->getAbsoluteUri()
+//        'uri'            => 'http://mail.yahooapis.com/ws/mail/v1.1/soap'
+//        'soap_version'   => SOAP_1_2
+      ));
+    }catch (Exception $e){
+      $soapClient = null;
+    }
+    return $soapClient;
   }
 }
