@@ -8,8 +8,15 @@ use OAuth\Common\Http\Uri\UriInterface;
 /**
  * Client implementation for streams/file_get_contents
  */
-class StreamClient extends AbstractClient
+class StreamToFileClient extends StreamClient
 {
+    protected $file;
+
+    public function setFile($file)
+    {
+        $this->file = $file;
+    }
+
     /**
      * Any implementing HTTP providers should send a request to the provided endpoint with the parameters.
      * They should return, in string form, the response body and throw an exception on error.
@@ -54,7 +61,17 @@ class StreamClient extends AbstractClient
         $context = $this->generateStreamContext($requestBody, $extraHeaders, $method);
 
         $level = error_reporting(0);
-        $response = file_get_contents($endpoint->getAbsoluteUri(), false, $context);
+        if(is_resource($this->file))
+        {
+            $response = '';
+            $absuri = $endpoint->getAbsoluteUri();
+            $attach = fopen($absuri, 'rb', null, $context);
+            stream_copy_to_stream($attach, $this->file);
+        }
+        else
+        {
+            $response = file_get_contents($endpoint->getAbsoluteUri(), false, $context);
+        }
         error_reporting($level);
         if (false === $response) {
             $lastError = error_get_last();
@@ -65,22 +82,5 @@ class StreamClient extends AbstractClient
         }
 
         return $response;
-    }
-
-    protected function generateStreamContext($body, $headers, $method)
-    {
-        return stream_context_create(
-            array(
-                'http' => array(
-                    'method'           => $method,
-                    'header'           => implode("\r\n", array_values($headers)),
-                    'content'          => $body,
-                    'protocol_version' => '1.1',
-                    'user_agent'       => $this->userAgent,
-                    'max_redirects'    => $this->maxRedirects,
-                    'timeout'          => $this->timeout
-                ),
-            )
-        );
     }
 }

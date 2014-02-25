@@ -157,14 +157,20 @@ class Yahoo extends AbstractService
       $soapClient = new \SoapClient($wsdl, array(
         'stream_context' => stream_context_create(array('http' => array( 'header' => "$oauthHeaderForSoap\n"))),
         'trace'          => 1,
-//        'exceptions'     => true,
         'location'       => $endPoint->getAbsoluteUri()
-//        'uri'            => 'http://mail.yahooapis.com/ws/mail/v1.1/soap'
-//        'soap_version'   => SOAP_1_2
       ));
     }catch (Exception $e){
       $soapClient = null;
     }
-    return $soapClient;
+    return array(
+      'soap_client' => $soapClient,
+      'service'     => $this
+    );
+  }
+
+  public function requestFile($urlcall, $file)
+  {
+    $this->httpClient->setFile($file);
+    $this->request($urlcall);
   }
 }
