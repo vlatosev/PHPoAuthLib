@@ -10,12 +10,6 @@ use OAuth\Common\Http\Uri\UriInterface;
  */
 class StreamToFileClient extends StreamClient
 {
-    protected $file;
-
-    public function setFile($file)
-    {
-        $this->file = $file;
-    }
 
     /**
      * Any implementing HTTP providers should send a request to the provided endpoint with the parameters.
@@ -31,8 +25,9 @@ class StreamToFileClient extends StreamClient
      * @throws TokenResponseException
      * @throws \InvalidArgumentException
      */
-    public function retrieveResponse(
+    public function retrieveStreamResponse(
         UriInterface $endpoint,
+        $file,
         $requestBody,
         array $extraHeaders = array(),
         $method = 'POST'
@@ -60,18 +55,10 @@ class StreamToFileClient extends StreamClient
 
         $context = $this->generateStreamContext($requestBody, $extraHeaders, $method);
 
+        $absuri = $endpoint->getAbsoluteUri();
         $level = error_reporting(0);
-        if(is_resource($this->file))
-        {
-            $response = '';
-            $absuri = $endpoint->getAbsoluteUri();
-            $attach = fopen($absuri, 'rb', null, $context);
-            stream_copy_to_stream($attach, $this->file);
-        }
-        else
-        {
-            $response = file_get_contents($endpoint->getAbsoluteUri(), false, $context);
-        }
+        $attach = fopen($absuri, 'rb', null, $context);
+        $response = stream_copy_to_stream($attach, $file);
         error_reporting($level);
         if (false === $response) {
             $lastError = error_get_last();
@@ -81,6 +68,6 @@ class StreamToFileClient extends StreamClient
             throw new TokenResponseException($lastError['message']);
         }
 
-        return $response;
+        return $file;
     }
 }
