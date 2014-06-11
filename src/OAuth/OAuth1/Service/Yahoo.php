@@ -11,14 +11,14 @@ use OAuth\OAuth1\Token\StdOAuth1Token;
 
 class Yahoo extends AbstractService
 {
-    const YAHOO_MAIL_SOAP_WSDL = 'http://mail.yahooapis.com/ws/mail/v1.1/wsdl';
+    const YAHOO_MAIL_SOAP_WSDL = 'https://mail.yahooapis.com/ws/mail/v1.1/wsdl';
 
     /**
      * @return Uri
      */
     public function getMailAPIEndpoint()
     {
-        return new Uri('http://mail.yahooapis.com/ws/mail/v1.1/soap');
+        return new Uri('https://mail.yahooapis.com/ws/mail/v1.1/soap');
     }
 
     /**
